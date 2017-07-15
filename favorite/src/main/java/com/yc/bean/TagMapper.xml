@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ <!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yc.bean.Tag">
+	<cache type="org.mybatis.caches.ehcache.LoggingEhcache">
+	</cache>
+	
+
+	<!-- 因为数据表中的列名与类中的属性名不一样，所以要映射..   要映射一个集合   favorites 
+	<resultMap type="Tag" id="TagAll">
+		<id property="tid" column="tid" />
+		<result property="tname" column="tname" />
+		<result property="tcount" column="tcount" />
+		<collection property="favorites" ofType="Favorite">
+			<id property="fid" column="fid" />
+			<result property="flabel" column="flabel" />
+			<result property="furl" column="furl" />
+			<result property="flabel" column="flabel" />
+			<result property="fdesc" column="fdesc" />
+			<result property="ftags" column="ftags" />
+		</collection>
+	</resultMap>
+	-->
+	<!-- 根据标签名查这个标签下所有的favorite ,  联接查询   selectFavoriteByTname-->
+	<select id="selectFavoriteByTname" resultType="Favorite" parameterType="Tag">
+		select
+		favorite.fid,flabel,furl,fdesc,ftags
+		from favorite
+		left join tagfavorite
+		on tagfavorite.fid=favorite.fid
+		left join tag
+		on tagfavorite.tid=tag.tid
+		where tag.tname=#{tname}
+	</select>
+	
+	
+	
+	
+	<!-- 查询这个Tag中的标签名tname是否已经存在... -->
+	<select id="selectTagByName" resultType="Tag" parameterType="Tag">
+		select * from tag
+		<where>
+			<if test="tname!=null and tname!='' ">
+				tname=#{tname}
+			</if>
+		</where>
+	</select>
+	
+	
+	<!-- 查询所有的tag 
+	<select id="selectTagAll" resultType="Tag">
+		select * from tag
+	</select>-->
+	
+	<!-- 添加一个新标签 -->
+	<insert id="addTag" parameterType="Tag" useGeneratedKeys="true" keyProperty="tid">
+		insert into tag(tname,tcount) values(#{tname},1)
+	</insert>
+	
+	<!-- 添加中间表的记录 -->
+	<insert id="addTagFavorite" parameterType="map">
+		insert into tagfavorite values(#{tid},#{fid})
+	</insert>
+	
+	<!-- 将标签的数量加一,更新操作 -->
+	<update id="increaseCount" parameterType="Tag">
+		update tag set tcount=tcount+1
+		where tname=#{tname}
+	</update>
+
+</mapper>
